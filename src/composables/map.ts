@@ -10,6 +10,7 @@ export class MapCanvas {
   viewport: Viewport
   image: HTMLImageElement
   canvas: Ref<HTMLCanvasElement | null>
+  ctx: CanvasRenderingContext2D | null
 
   constructor(canvas: Ref<HTMLCanvasElement | null>) {
     this.viewport = reactive({
@@ -21,6 +22,11 @@ export class MapCanvas {
     })
     this.canvas = canvas
     this.image = new Image()
+    this.ctx = null
+  }
+
+  init() {
+    this.ctx = this.canvas.value!.getContext('2d', { willReadFrequently: false })!
   }
 
   set(viewport: Viewport) {
@@ -28,7 +34,9 @@ export class MapCanvas {
   }
 
   getCtx(): CanvasRenderingContext2D {
-    return this.canvas.value!.getContext('2d')!
+    if (!this.ctx)
+      throw new Error('Canvas not initialized')
+    return this.ctx
   }
 
   async loadImageFromFileSystem(file: File) {
@@ -87,8 +95,7 @@ export class MapCanvas {
       Math.min(Math.max(Math.round(mouseX - size[0] / 2), 0), this.viewport.width - size[0]),
       Math.min(Math.max(Math.round(mouseY - size[1] / 2), 0), this.viewport.height - size[1]),
     ]
-    const ctx = this.getCtx()
-    const imageData = ctx.getImageData(position[0], position[1], size[0], size[1])
+    const imageData = this.getCtx().getImageData(position[0], position[1], size[0], size[1])
     return imageData
   }
 
