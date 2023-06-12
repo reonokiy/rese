@@ -48,9 +48,11 @@ watch([mouseX, mouseY], ([x, y], [ox, oy]) => {
 })
 
 // Highlight Mouse Position
-watch([mouseX, mouseY], ([x, y]) => {
-  mapCanvas.render()
-  highlight()
+watch([mouseX, mouseY], () => {
+  if (mapCanvas.status) {
+    mapCanvas.render()
+    highlight()
+  }
 })
 
 onMounted(() => {
@@ -80,27 +82,13 @@ async function loadImageToCanvas(idx: number | null) {
 
       <div h-0.5 rounded-full shadow-sm bg="sky-7/20" />
 
-      <button v-show="expandSidePanel" title="Image" icon-btn-square :class="{ 'btn-primary': selectedTab === 'image' }" @click="selectTab('image')">
+      <button title="Image" icon-btn-square :class="{ 'btn-primary': selectedTab === 'image' }" @click="selectTab('image')">
         <span i-carbon-image inline-block />
       </button>
 
-      <button v-show="expandSidePanel" title="Network" icon-btn-square :class="{ 'btn-primary': selectedTab === 'network' }" @click="selectTab('network')">
+      <button title="Network" icon-btn-square :class="{ 'btn-primary': selectedTab === 'network' }" @click="selectTab('network')">
         <span i-carbon-model-alt inline-block />
       </button>
-
-      <!-- <button v-show="!expandSidePanel" title="Upload Image">
-        <label for="image-upload" icon-btn-square btn-primary>
-          <span i-carbon-image-reference inline-block />
-        </label>
-        <input id="image-upload" ref="imgUploadRef" hidden type="file" @change="loadImageFromFileSystem">
-      </button>
-
-      <button v-show="!expandSidePanel" title="Upload Modal">
-        <label for="model-upload" icon-btn-square btn-primary>
-          <span i-carbon-model-alt inline-block />
-        </label>
-        <input id="model-upload" hidden type="file" @change="loadImageFromFileSystem">
-      </button> -->
 
       <div h-0.5 rounded-full shadow-sm bg="sky-7/20" />
 
@@ -176,7 +164,7 @@ async function loadImageToCanvas(idx: number | null) {
             <h2 border="b-2 sky-7/20" px-2 py-1 text-xl leading-relaxed>
               Image List
             </h2>
-            <div v-if="imageFileList || imageFileList!.length === 0" w-full cursor-pointer overflow-y-auto>
+            <div v-if="imageFileList && imageFileList!.length !== 0" w-full cursor-pointer overflow-y-auto>
               <div v-for="idx in imageFileList!.length" :key="idx" :class="{ 'bg-light-3': selectedImage === idx }" mb-2 mr-2 rounded-md p-2 font-mono text-sm duration-300 ease-in-out @click="selectedImage = idx">
                 {{ imageFileList![idx - 1].name }}
               </div>

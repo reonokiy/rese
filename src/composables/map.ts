@@ -11,6 +11,7 @@ export class MapCanvas {
   image: HTMLImageElement
   canvas: Ref<HTMLCanvasElement | null>
   ctx: CanvasRenderingContext2D | null
+  status: Ref<Boolean>
 
   constructor(canvas: Ref<HTMLCanvasElement | null>) {
     this.viewport = reactive({
@@ -23,10 +24,17 @@ export class MapCanvas {
     this.canvas = canvas
     this.image = new Image()
     this.ctx = null
+    this.status = ref(false)
   }
 
   init() {
-    this.ctx = this.canvas.value!.getContext('2d', { willReadFrequently: false })!
+    try {
+      this.ctx = this.canvas.value!.getContext('2d', { willReadFrequently: false })!
+    }
+    catch (e) {
+      this.status.value = false
+      throw e
+    }
   }
 
   set(viewport: Viewport) {
@@ -40,10 +48,18 @@ export class MapCanvas {
   }
 
   async loadImageFromFileSystem(file: File) {
-    const reader = new FileReader()
-    reader.onload = () => this.image.src = reader.result as string
-    reader.readAsDataURL(file)
-    await new Promise(resolve => this.image.onload = resolve)
+    try {
+      const reader = new FileReader()
+      reader.onload = () => this.image.src = reader.result as string
+      reader.readAsDataURL(file)
+      await new Promise(resolve => this.image.onload = resolve)
+      this.status.value = true
+    }
+    catch (e) {
+      this.status.value = false
+      throw e
+    }
+
     // set viewport to the size of the image
     this.viewport.scale = this.getMinScale() * 0.75
     // center the image
