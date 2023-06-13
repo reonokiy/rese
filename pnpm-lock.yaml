@@ -19,9 +19,6 @@ devDependencies:
   '@antfu/eslint-config':
     specifier: ^0.39.5
     version: 0.39.5(eslint@8.42.0)(typescript@5.1.3)
-  '@iconify-json/carbon':
-    specifier: ^1.1.17
-    version: 1.1.17
   '@types/node':
     specifier: ^20.2.5
     version: 20.2.5
@@ -40,9 +37,6 @@ devDependencies:
   '@vue/test-utils':
     specifier: ^2.3.2
     version: 2.3.2(vue@3.3.4)
-  '@webonnx/wonnx-wasm':
-    specifier: ^0.5.0
-    version: 0.5.0
   eslint:
     specifier: ^8.42.0
     version: 8.42.0
@@ -510,12 +504,6 @@ packages:
 
   /@humanwhocodes/object-schema@1.2.1:
     resolution: {integrity: sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==}
-    dev: true
-
-  /@iconify-json/carbon@1.1.17:
-    resolution: {integrity: sha512-FJCHUNP+iEGZILqu5YjByV+RBrWCsMo7YWXBJSpRMvaeVH3yjK3TI8UIc7lmPGI1NRmjThiaqjxMqe7CgQY55Q==}
-    dependencies:
-      '@iconify/types': 2.0.0
     dev: true
 
   /@iconify/types@2.0.0:
@@ -1733,10 +1721,6 @@ packages:
     transitivePeerDependencies:
       - '@vue/composition-api'
       - vue
-
-  /@webonnx/wonnx-wasm@0.5.0:
-    resolution: {integrity: sha512-Oe6e2p3BE5mRIaQRWqUZKe4TYSBEY7pzU68Vw7AegUXiWHQQHdCaU7IKexywRRux5OxYX0Eq9BpRCzeg+uYr9g==}
-    dev: true
 
   /abab@2.0.6:
     resolution: {integrity: sha512-j2afSsaIENvHZN2B8GOpF566vZ5WVk5opAiMTvWgaQT8DkbOqsTfvNAvHoRGU2zzP8cPoqys+xHTRDWW8L+/BA==}
