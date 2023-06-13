@@ -1,3 +1,5 @@
+import type { DetectObject } from './inference'
+
 export interface Viewport {
   x: number
   y: number
@@ -6,12 +8,28 @@ export interface Viewport {
   scale: number
 }
 
+export interface Label {
+  idx: number
+  name: string
+}
+
+export interface Position {
+  x: number
+  y: number
+}
+
+export interface RectSize {
+  width: number
+  height: number
+}
+
 export class MapCanvas {
   viewport: Viewport
   image: HTMLImageElement
   canvas: Ref<HTMLCanvasElement | null>
   ctx: CanvasRenderingContext2D | null
   status: Ref<Boolean>
+  objects: DetectObject[]
 
   constructor(canvas: Ref<HTMLCanvasElement | null>) {
     this.viewport = reactive({
@@ -25,6 +43,7 @@ export class MapCanvas {
     this.image = new Image()
     this.ctx = null
     this.status = ref(false)
+    this.objects = []
   }
 
   init() {
@@ -60,6 +79,8 @@ export class MapCanvas {
       throw e
     }
 
+    // reset objects
+    this.objects = []
     // set viewport to the size of the image
     this.viewport.scale = this.getMinScale() * 0.75
     // center the image
@@ -90,6 +111,7 @@ export class MapCanvas {
 
   render() {
     this.drawImage(this.image)
+    this.labelImage()
   }
 
   highlight(x: number, y: number, size = [640, 640], color = 'rgba(0, 0, 0, 0.3)') {
@@ -123,6 +145,35 @@ export class MapCanvas {
     this.render()
   }
 
+  addObjects(objects: DetectObject[], mousePosition: Position, size: RectSize) {
+    // convert position relative to mouse position to position relative to src image
+    for (const object of objects) {
+      object.x = Math.round(object.x / this.viewport.scale + this.viewport.x + mousePosition.x - size.width / 2)
+      object.y = Math.round(object.y / this.viewport.scale + this.viewport.y + mousePosition.y - size.height / 2)
+    }
+    this.objects = this.objects.concat(objects)
+  }
+
+  labelImage() {
+    // filter out objects that are in the viewport
+    const objects = this.objects.filter((object) => {
+      return object.x >= this.viewport.x && object.x <= this.viewport.x + this.viewport.width / this.viewport.scale && object.y >= this.viewport.y && object.y <= this.viewport.y + this.viewport.height / this.viewport.scale
+    })
+    // plot the objects
+    const ctx = this.getCtx()
+    ctx.font = '20px Arial'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    for (const object of objects) {
+      const position = [(object.x - this.viewport.x) * this.viewport.scale, (object.y - this.viewport.y) * this.viewport.scale]
+      const size = [object.w * this.viewport.scale, object.h * this.viewport.scale]
+      ctx.fillStyle = getLabelColor(object.class)
+      ctx.fillRect(position[0] - size[0] / 2, position[1] - size[1] / 2, size[0], size[1])
+      ctx.fillStyle = 'white'
+      ctx.fillText(object.class.toString(), position[0], position[1])
+    }
+  }
+
   private resizeViewport(width: number, height: number) {
     this.viewport.width = width
     this.viewport.height = height
@@ -143,4 +194,16 @@ export class MapCanvas {
   private getMinScale() {
     return Math.min(this.viewport.width / this.image.width, this.viewport.height / this.image.height)
   }
+}
+
+export function getLabelColor(i: number, alpha = 0.2) {
+  const palette = [
+    '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231',
+    '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe',
+    '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000',
+    '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080',
+    '#ffffff', '#000000',
+  ]
+  const color = palette[i % palette.length]
+  return color + Math.round(alpha * 255).toString(16).padStart(2, '0')
 }

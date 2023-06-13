@@ -1,12 +1,11 @@
 <script lang="ts" setup>
 // Element Bindings
-const imgUploadRef = ref<HTMLInputElement | null>(null)
 const mapAreaRef = ref<HTMLDivElement | null>(null)
 const mapCanvasRef = ref<HTMLCanvasElement | null>(null)
 
 // Element Refs
 const { width, height } = useWindowSize()
-const { x: mouseX, y: mouseY, sourceType: mouseSourceType } = useMouse()
+const { x: mouseX, y: mouseY } = useMouse()
 const { pressed: mousePressed } = useMousePressed()
 
 // Reactive Styles
@@ -23,17 +22,17 @@ function selectTab(tab: string) {
 // Data
 const mapCanvas = new MapCanvas(mapCanvasRef)
 const model = new ONNXModel()
-const { files: imageFileList, open: openImageSelector, reset: resetImageFileList, onChange: onImageFileListChange } = useFileDialog({
+const { files: imageFileList, open: openImageSelector } = useFileDialog({
   accept: '.jpg, .jpeg, .png',
   multiple: true,
 })
 const modelLink = ref('')
-const { files: modelFileList, open: openModelSelector, reset: resetModelFileList, onChange: onModelFileListChange } = useFileDialog({
+const { files: modelFileList, open: openModelSelector, onChange: onModelFileListChange } = useFileDialog({
   accept: '.onnx',
   multiple: false,
 })
 const modelInputSize = reactive({ width: 640, height: 640 })
-const modelLabels = reactive([] as { idx: number; label: string }[])
+const modelLabels = reactive([] as Label[])
 const toAddLabel = reactive({ idx: null, label: null } as { idx: number | null; label: string | null })
 
 function addLabel(idx: number | null, label: string | null) {
@@ -52,21 +51,33 @@ onMounted(() => {
   model.init('https://r2.ree.ink/models/levir-yolov8n-noprepocess-100epochs-best.onnx')
 })
 
+// resize canvas when window size changed
 useResizeObserver(mapAreaRef, () => {
   mapCanvas.resize(width.value, height.value)
 })
 
-onKeyStroke(['D', 'd'], () => {
-  model.predict(mapCanvas.getImage(mouseX.value, mouseY.value))
+// execute predict when press 'D' or 'd'
+onKeyStroke(['D', 'd'], async () => {
+  if (model.status && mapCanvas.status) {
+    const result = await model.predict(mapCanvas.getImage(mouseX.value, mouseY.value))
+    const objects = await processResult(result.output)
+    mapCanvas.addObjects(objects, { x: mouseX.value, y: mouseY.value }, { width: modelInputSize.width, height: modelInputSize.height })
+  }
+  else if (!model.status) {
+    window.alert('Model Not Loaded!')
+  }
+  else if (!mapCanvas.status) {
+    window.alert('Image Not Loaded!')
+  }
 })
 
-// watch Mouse Move
+// move canvas when mouse pressed and moved
 watch([mouseX, mouseY], ([x, y], [ox, oy]) => {
   if (mousePressed.value)
     mapCanvas.move(ox - x, oy - y)
 })
 
-// Highlight Mouse Position
+// highlight the image position to detect when mouse moved
 watch([mouseX, mouseY], () => {
   if (mapCanvas.status) {
     mapCanvas.render()
@@ -74,8 +85,8 @@ watch([mouseX, mouseY], () => {
   }
 })
 
+// zoom canvas when mouse wheel scrolled
 onMounted(() => {
-  // use Mouse Wheel to Zoom
   mapAreaRef.value?.addEventListener('wheel', (e) => {
     mapCanvas.zoom(-e.deltaY)
     highlight()
@@ -86,6 +97,22 @@ async function loadImageToCanvas(idx: number | null) {
   if (idx !== null && imageFileList.value && imageFileList.value.item(idx) !== null)
     mapCanvas.loadImageFromFileSystem(imageFileList.value.item(idx)!)
 }
+
+async function loadModelFromFileSystem() {
+  if (modelFileList.value && modelFileList.value.item(0) !== null) {
+    const file = modelFileList.value.item(0)!
+    const url = URL.createObjectURL(file)
+    await model.init(url)
+
+    if (model.status)
+      window.alert('Model Loaded!')
+    else
+      window.alert('Model Load Failed!')
+  }
+}
+
+// load model when model file list changed
+onModelFileListChange(loadModelFromFileSystem)
 </script>
 
 <template>
