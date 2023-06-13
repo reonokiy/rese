@@ -33,6 +33,16 @@ const { files: modelFileList, open: openModelSelector, reset: resetModelFileList
   multiple: false,
 })
 const modelInputSize = reactive({ width: 640, height: 640 })
+const modelLabels = reactive([] as { idx: number; label: string }[])
+const toAddLabel = reactive({ idx: null, label: null } as { idx: number | null; label: string | null })
+
+function addLabel(idx: number | null, label: string | null) {
+  if (idx !== null && label !== null) {
+    modelLabels.push({ idx, label })
+    toAddLabel.idx = null
+    toAddLabel.label = null
+  }
+}
 
 // Lambda Functions
 const highlight = () => onHighlight.value && mapCanvas.highlight(mouseX.value, mouseY.value)
@@ -159,7 +169,7 @@ async function loadImageToCanvas(idx: number | null) {
             <h2 border="b-2 sky-7/20" px-2 py-1 text-xl leading-relaxed>
               Image List
             </h2>
-            <div v-if="imageFileList && imageFileList!.length !== 0" w-full cursor-pointer overflow-y-auto>
+            <div v-if="imageFileList && imageFileList!.length !== 0" w-full cursor-pointer overflow-y-auto scrollbar="~ w-1 rounded track-color-transparent thumb-color-sky-7/40">
               <div v-for="idx in imageFileList!.length" :key="idx" :class="{ 'bg-light-3': selectedImage === idx }" mb-2 mr-2 rounded-md p-2 font-mono text-sm duration-300 ease-in-out @click="selectedImage = idx">
                 {{ imageFileList![idx - 1].name }}
               </div>
@@ -208,17 +218,27 @@ async function loadImageToCanvas(idx: number | null) {
             </span>
           </div>
 
-          <div bg="sky-7/10" flex-auto rounded-md p-2 shadow-sm>
-            <h2 mb-2>
+          <div bg="sky-7/10" flex="~ col gap-2" flex-auto overflow-hidden rounded-md p-2 shadow-sm>
+            <h2>
               Labels
             </h2>
 
-            <div flex="~ justify-between items-center gap-2">
-              <input placeholder="index" w-4 flex-auto rounded-md px-2 py-1 bg="white/60">
-              <input placeholder="label" w-16 flex-auto rounded-md px-2 py-1 bg="white/60">
-              <button flex="~ items-center" bg="hover:white/60" rounded-md p-2 duration-300 ease-in-out>
+            <div flex="~ justify-between items-center gap-2" pr-2>
+              <input v-model="toAddLabel.idx" placeholder="index" type="number" w-4 flex-auto rounded-md px-2 py-1 text-center bg="white/60">
+              <input v-model="toAddLabel.label" placeholder="label" type="text" w-16 flex-auto rounded-md px-2 py-1 text-center bg="white/60">
+              <button flex="~ items-center" bg="hover:white/60 disabled:transparent" mr-2 rounded-md p-2 duration-300 ease-in-out :disabled="toAddLabel.idx === null || toAddLabel.label === null" @click="addLabel(toAddLabel.idx, toAddLabel.label)">
                 <span i-carbon-add inline-block />
               </button>
+            </div>
+
+            <div v-if="modelLabels.length > 0" overflow-y-auto scrollbar="~ w-1 rounded track-color-transparent thumb-color-sky-7/60" flex="~ col gap-2" pr-2>
+              <div v-for="label in modelLabels" :key="label.idx" flex="~ items-center justify-between gap-2" bg="white/60" rounded-md p-2>
+                <span w-4 flex-auto text-center>{{ label.idx }}</span>
+                <span w-16 flex-auto text-center>{{ label.label }}</span>
+                <button flex="~ items-center" bg="hover:white/60" rounded-md p-2 duration-300 ease-in-out @click="modelLabels.splice(modelLabels.indexOf(label), 1)">
+                  <span i-carbon-subtract inline-block />
+                </button>
+              </div>
             </div>
           </div>
 
