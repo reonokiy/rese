@@ -23,7 +23,16 @@ function selectTab(tab: string) {
 // Data
 const mapCanvas = new MapCanvas(mapCanvasRef)
 const model = new ONNXModel()
-const { files: imageFileList, open: openImageSelector, reset: resetImageFileList, onChange: onImageFileListChange } = useFileDialog()
+const { files: imageFileList, open: openImageSelector, reset: resetImageFileList, onChange: onImageFileListChange } = useFileDialog({
+  accept: '.jpg, .jpeg, .png',
+  multiple: true,
+})
+const modelLink = ref('')
+const { files: modelFileList, open: openModelSelector, reset: resetModelFileList, onChange: onModelFileListChange } = useFileDialog({
+  accept: '.onnx',
+  multiple: false,
+})
+const modelInputSize = reactive({ width: 640, height: 640 })
 
 // Lambda Functions
 const highlight = () => onHighlight.value && mapCanvas.highlight(mouseX.value, mouseY.value)
@@ -82,6 +91,10 @@ async function loadImageToCanvas(idx: number | null) {
 
       <div h-0.5 rounded-full shadow-sm bg="sky-7/20" />
 
+      <button title="Info" icon-btn-square :class="{ 'btn-primary': selectedTab === 'info' }" @click="selectTab('info')">
+        <span i-carbon-information inline-block />
+      </button>
+
       <button title="Image" icon-btn-square :class="{ 'btn-primary': selectedTab === 'image' }" @click="selectTab('image')">
         <span i-carbon-image inline-block />
       </button>
@@ -123,26 +136,8 @@ async function loadImageToCanvas(idx: number | null) {
       <div v-show="expandSidePanel" class="content" flex-1 cursor-default overflow-hidden pl-2 pr-4>
         <div v-show="selectedTab === 'info'">
           <h1 panel-h1>
-            Config
+            ReSe
           </h1>
-          <section>
-            <h2 text-2xl font-bold leading-loose>
-              Info
-            </h2>
-            <div>
-              <p>Image width: {{ mapCanvas.image.width }} px</p>
-              <p>Image height: {{ mapCanvas.image.height }} px</p>
-              <p>Viewport width: {{ width }} px</p>
-              <p>Viewport height: {{ height }} px</p>
-              <p>Input position: [{{ mouseX }}, {{ mouseY }}], type: {{ mouseSourceType }}</p>
-            </div>
-          </section>
-
-          <section>
-            <h2 text-2xl font-bold leading-loose>
-              Current Dection
-            </h2>
-          </section>
         </div>
 
         <div v-show="selectedTab === 'image'" flex="~ col gap-2" h-full overflow-hidden>
@@ -177,16 +172,72 @@ async function loadImageToCanvas(idx: number | null) {
 
           <div>
             <div my-1 mr-2 inline-block>
-              <button bg="sky-7 hover:sky-8" color="white" flex="~ items-center justify-center" rounded-md p-2 shadow-sm duration-300 ease-in-out @click="openImageSelector()">
+              <button bg="sky-7 hover:sky-8" color="white" flex="~ items-center justify-center" rounded-md p-2 shadow-sm duration-300 ease-in-out @click="openImageSelector(), selectedImage = null">
                 <span i-carbon-image-reference mr-2 inline-block />
                 <span>Upload Image</span>
               </button>
             </div>
 
             <div my-1 inline-block>
-              <button bg="red-6/20 hover:red-6/30" flex="~ items-center justify-center" inline-block rounded-md p-2 shadow-sm duration-300 ease-in-out @click="loadImageToCanvas(selectedImage)">
+              <button bg="red-6/20 hover:red-6/30 disabled:neutral-500" color="disabled:white" flex="~ items-center justify-center" inline-block rounded-md p-2 shadow-sm duration-300 ease-in-out :disabled="selectedImage === null" @click="loadImageToCanvas(selectedImage)">
                 <span i-carbon-restart mr-2 inline-block />
-                <span>Load Canvas</span>
+                <span>Load to Canvas</span>
+              </button>
+            </div>
+          </div>
+
+          <div />
+        </div>
+
+        <div v-show="selectedTab === 'network'" flex="~ col gap-2" h-full overflow-hidden>
+          <h1 flex-none panel-h1>
+            Network Options
+          </h1>
+
+          <div bg="sky-7/10" rounded-md p-2 shadow-sm flex="~ items-center justify-between">
+            <span>Model Name</span>
+            <input type="text" inline-block w-18 w-46 rounded-md px-2 py-1 bg="white/60" placeholder="YOLOv8">
+          </div>
+
+          <div bg="sky-7/10" flex="~ items-center justify-between" rounded-md p-2 shadow-sm>
+            <span>
+              Input Size
+            </span>
+            <span flex-none>
+              <input v-model="modelInputSize.width" bg="white/60" type="number" inline-block w-18 rounded-md px-2 py-1 text-center> x <input v-model="modelInputSize.height" type="number" inline-block w-18 rounded-md px-2 py-1 text-center bg="white/60"> px
+            </span>
+          </div>
+
+          <div bg="sky-7/10" flex-auto rounded-md p-2 shadow-sm>
+            <h2 mb-2>
+              Labels
+            </h2>
+
+            <div flex="~ justify-between items-center gap-2">
+              <input placeholder="index" w-4 flex-auto rounded-md px-2 py-1 bg="white/60">
+              <input placeholder="label" w-16 flex-auto rounded-md px-2 py-1 bg="white/60">
+              <button flex="~ items-center" bg="hover:white/60" rounded-md p-2 duration-300 ease-in-out>
+                <span i-carbon-add inline-block />
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <input v-model="modelLink" type="text" placeholder="https://example.com/yolo.onnx" w-full rounded-md p-2 border="2 sky-7/30">
+          </div>
+
+          <div>
+            <div my-1 mr-2 inline-block>
+              <button bg="sky-7 hover:sky-8" color="white" flex="~ items-center justify-center" rounded-md p-2 shadow-sm duration-300 ease-in-out @click="openModelSelector()">
+                <span i-carbon-cube mr-2 inline-block />
+                <span>Upload Model</span>
+              </button>
+            </div>
+
+            <div my-1 mr-2 inline-block>
+              <button bg="sky-7 hover:sky-8 disabled:neutral-500" color="white" flex="~ items-center justify-center" rounded-md p-2 shadow-sm duration-300 ease-in-out :disabled="modelLink.length === 0" @click="openImageSelector()">
+                <span i-carbon-link mr-2 inline-block />
+                <span>Load from Link</span>
               </button>
             </div>
           </div>
