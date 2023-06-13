@@ -144,10 +144,44 @@ async function loadImageToCanvas(idx: number | null) {
       leave-to-class="opacity-0"
     >
       <div v-show="expandSidePanel" class="content" flex-1 cursor-default overflow-hidden pl-2 pr-4>
-        <div v-show="selectedTab === 'info'">
+        <div v-show="selectedTab === 'info'" flex="~ col gap-2" h-full>
           <h1 panel-h1>
             ReSe
           </h1>
+
+          <div flex-auto />
+
+          <div flex="~ gap-2">
+            <span bg="sky-7/10" rounded-md p-2 shadow-sm>MIT © ReeInk</span>
+            <a bg="sky-7/10" rounded-md p-2 shadow-sm flex="~ inline items-center gap-2" href="https://github.com/reeink/rese" target="_blank">
+              <span i-carbon-logo-github inline-block /> reeink/rese
+            </a>
+          </div>
+
+          <div flex="~ gap-2 wrap">
+            <span bg="sky-7/10" rounded-md p-2 shadow-sm>Powered By</span>
+            <a bg="sky-7/10" flex="~ inline items-center gap-2" rounded-md px-3 py-2 shadow-sm href="https://vuejs.org" target="_blank">
+              <span i-carbon-logo-vue inline-block /> Vue
+            </a>
+            <a bg="sky-7/10" flex="~ inline items-center gap-2" rounded-md px-3 py-2 shadow-sm href="https://unocss.dev" target="_blank">
+              <span i-vscode-icons-file-type-unocss inline-block /> UnoCSS
+            </a>
+            <a bg="sky-7/10" flex="~ inline items-center gap-2" href="https://github.com/action-hong/unocss-preset-scrollbar" target="_blank" rounded-md px-3 py-2 shadow-sm>
+              <span i-carbon-logo-github inline-block />unocss-preset-scrollbar
+            </a>
+            <a bg="sky-7/10" rounded-md px-3 py-2 shadow-sm flex="~ inline items-center gap-2" href="https://onnx.ai" target="_blank">
+              <span i-simple-icons-onnx inline-block />ONNX
+            </a>
+            <a bg="sky-7/10" rounded-md px-3 py-2 shadow-sm flex="~ inline items-center gap-2" href="https://onnxruntime.ai" target="_blank">
+              ONNX Runtime
+            </a>
+            <a bg="sky-7/10" rounded-md px-3 py-2 shadow-sm flex="~ inline items-center gap-2" href="https://github.com/antfu/vitesse-lite" target="_blank">
+              <span i-carbon-logo-github inline-block />vitesse-lite
+            </a>
+            <a bg="sky-7/10" rounded-md px-3 py-2 shadow-sm flex="~ inline items-center gap-2" href="https://pages.cloudflare.com" target="_blank">
+              <span i-simple-icons-cloudflarepages inline-block /> Cloudflare Pages
+            </a>
+          </div>
         </div>
 
         <div v-show="selectedTab === 'image'" flex="~ col gap-2" h-full overflow-hidden>
