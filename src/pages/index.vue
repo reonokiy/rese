@@ -181,22 +181,20 @@ async function loadImageToCanvas(idx: number | null) {
           </div>
 
           <div>
-            <div my-1 mr-2 inline-block>
+            <div mr-2 inline-block>
               <button bg="sky-7 hover:sky-8" color="white" flex="~ items-center justify-center" rounded-md p-2 shadow-sm duration-300 ease-in-out @click="openImageSelector(), selectedImage = null">
                 <span i-carbon-image-reference mr-2 inline-block />
                 <span>Upload Image</span>
               </button>
             </div>
 
-            <div my-1 inline-block>
+            <div inline-block>
               <button bg="red-6/20 hover:red-6/30 disabled:neutral-500" color="disabled:white" flex="~ items-center justify-center" inline-block rounded-md p-2 shadow-sm duration-300 ease-in-out :disabled="selectedImage === null" @click="loadImageToCanvas(selectedImage)">
                 <span i-carbon-restart mr-2 inline-block />
                 <span>Load to Canvas</span>
               </button>
             </div>
           </div>
-
-          <div />
         </div>
 
         <div v-show="selectedTab === 'network'" flex="~ col gap-2" h-full overflow-hidden>
