@@ -231,7 +231,7 @@ onModelFileListChange(loadModelFromFileSystem)
             </span>
           </div>
 
-          <div flex="~ gap-2 wrap" flex-auto>
+          <div flex="~ gap-2 wrap">
             <h2 bg="sky-7/20" rounded-md p-2 shadow-sm>
               Help
             </h2>
