@@ -70,6 +70,7 @@ onKeyStroke(['D', 'd'], async () => {
     const result = await model.predict(image, { height: position.height, width: position.width })
     const objects = await processResult(result.output)
     await mapCanvas.addObjects(objects, size, position)
+    mapCanvas.render()
     const endTime = new Date().getTime()
     modelInferenceTime.modelInference = result.time.afterPredictTime - result.time.beforePredictTime
     modelInferenceTime.preProcess = result.time.beforePredictTime - startTime
@@ -198,11 +199,11 @@ onModelFileListChange(loadModelFromFileSystem)
       <div v-show="expandSidePanel" class="content" flex-1 cursor-default overflow-hidden pl-2 pr-4>
         <div v-show="selectedTab === 'info'" flex="~ col gap-2" h-full>
           <h1 panel-h1>
-            ReSe
+            About ReSe
           </h1>
 
           <div flex="~ gap-2">
-            <h2 bg="sky-7/10" rounded-md p-2 shadow-sm>
+            <h2 bg="sky-7/20" rounded-md p-2 shadow-sm>
               Status
             </h2>
             <span bg="sky-7/10" rounded-md p-2 shadow-sm flex="~ items-center gap-2">Canvas
@@ -216,7 +217,7 @@ onModelFileListChange(loadModelFromFileSystem)
           </div>
 
           <div flex="~ gap-2 wrap">
-            <h2 bg="sky-7/10" rounded-md p-2 shadow-sm>
+            <h2 bg="sky-7/20" rounded-md p-2 shadow-sm>
               Time
             </h2>
             <span bg="sky-7/10" rounded-md p-2 shadow-sm>
@@ -230,9 +231,28 @@ onModelFileListChange(loadModelFromFileSystem)
             </span>
           </div>
 
-          <div flex-auto />
+          <div flex="~ gap-2 wrap" flex-auto>
+            <h2 bg="sky-7/20" rounded-md p-2 shadow-sm>
+              Help
+            </h2>
+            <span bg="sky-7/10" rounded-md p-2 shadow-sm>
+              Press <code bg="white/60" rounded-sm p-0.5 font-mono>D</code> or <code bg="white/60" rounded-sm p-0.5 font-mono>d</code>  to start a detection
+            </span>
+            <span bg="sky-7/10" rounded-md p-2 shadow-sm>
+              Click <span i-carbon-3d-mpr-toggle inline-block align-middle /> to show the area to detect
+            </span>
+            <span bg="sky-7/10" rounded-md p-2 shadow-sm>
+              Click <span i-carbon-zoom-in inline-block align-middle /> or <span i-carbon-zoom-out inline-block align-middle /> to zoom in or out
+            </span>
+            <span bg="sky-7/10" rounded-md p-2 shadow-sm>
+              Click <span i-carbon-center-to-fit inline-block align-middle /> to center the image
+            </span>
+          </div>
 
           <div flex="~ gap-2">
+            <span bg="sky-7/20" flex="~ items-center" rounded-md p-2 shadow-sm>
+              <span i-ic-round-copyright mx-1 inline-block />
+            </span>
             <span bg="sky-7/10" rounded-md p-2 shadow-sm>MIT © ReeInk</span>
             <a bg="sky-7/10" rounded-md p-2 shadow-sm flex="~ inline items-center gap-2" href="https://github.com/reeink/rese" target="_blank">
               <span i-carbon-logo-github inline-block /> reeink/rese
@@ -240,7 +260,7 @@ onModelFileListChange(loadModelFromFileSystem)
           </div>
 
           <div flex="~ gap-2 wrap">
-            <span bg="sky-7/10" rounded-md p-2 shadow-sm>Powered By</span>
+            <span bg="sky-7/20" rounded-md p-2 shadow-sm>Powered by</span>
             <a bg="sky-7/10" flex="~ inline items-center gap-2" rounded-md px-3 py-2 shadow-sm href="https://vuejs.org" target="_blank">
               <span i-carbon-logo-vue inline-block /> Vue
             </a>
