@@ -285,7 +285,7 @@ onModelFileListChange(loadModelFromFileSystem)
               Image List
             </h2>
             <div v-if="imageFileList && imageFileList!.length !== 0" w-full cursor-pointer overflow-y-auto scrollbar="~ w-1 rounded track-color-transparent thumb-color-sky-7/40">
-              <div v-for="idx in imageFileList!.length" :key="idx" :class="{ 'bg-light-3': selectedImage === idx }" mb-2 mr-2 rounded-md p-2 font-mono text-sm duration-300 ease-in-out @click="selectedImage = idx">
+              <div v-for="idx in imageFileList!.length" :key="idx" :class="{ 'bg-light-3': selectedImage === idx - 1 }" mb-2 mr-2 rounded-md p-2 font-mono text-sm duration-300 ease-in-out @click="selectedImage = idx - 1">
                 {{ imageFileList![idx - 1].name }}
               </div>
             </div>
