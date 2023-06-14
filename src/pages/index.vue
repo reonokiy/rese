@@ -34,6 +34,11 @@ const { files: modelFileList, open: openModelSelector, onChange: onModelFileList
 const modelInputSize = reactive({ width: 640, height: 640 } as RectSize)
 const modelLabels = reactive([] as Label[])
 const modelName = ref('')
+const modelInferenceTime = reactive({
+  modelInference: 0,
+  preProcess: 0,
+  postProcess: 0,
+})
 const toAddLabel = reactive({ idx: null, name: null } as toNullable<Label>)
 
 function addLabel(idx: number | null, name: string | null) {
@@ -59,11 +64,16 @@ useResizeObserver(mapAreaRef, () => {
 // execute predict when press 'D' or 'd'
 onKeyStroke(['D', 'd'], async () => {
   if (model.status && mapCanvas.status) {
+    const startTime = new Date().getTime()
     const size: RectSize = { width: modelInputSize.width, height: modelInputSize.height }
     const { data: image, position } = await mapCanvas.getImage({ x: mouseX.value, y: mouseY.value }, size)
     const result = await model.predict(image, { height: position.height, width: position.width })
     const objects = await processResult(result.output)
-    mapCanvas.addObjects(objects, size, position)
+    await mapCanvas.addObjects(objects, size, position)
+    const endTime = new Date().getTime()
+    modelInferenceTime.modelInference = result.time.afterPredictTime - result.time.beforePredictTime
+    modelInferenceTime.preProcess = result.time.beforePredictTime - startTime
+    modelInferenceTime.postProcess = endTime - result.time.afterPredictTime
   }
   else if (!model.status) {
     window.alert('Model Not Loaded!')
@@ -190,6 +200,35 @@ onModelFileListChange(loadModelFromFileSystem)
           <h1 panel-h1>
             ReSe
           </h1>
+
+          <div flex="~ gap-2">
+            <h2 bg="sky-7/10" rounded-md p-2 shadow-sm>
+              Status
+            </h2>
+            <span bg="sky-7/10" rounded-md p-2 shadow-sm flex="~ items-center gap-2">Canvas
+              <span v-if="mapCanvas.status.value" i-icon-park-outline-success inline-block color-green-7 />
+              <span v-else i-ph-circle-wavy-warning-bold inline-block color-yellow-6 />
+            </span>
+            <span bg="sky-7/10" rounded-md p-2 shadow-sm flex="~ items-center gap-2">Model
+              <span v-if="model.status.value" i-icon-park-outline-success inline-block color-green-7 />
+              <span v-else i-ph-circle-wavy-warning-bold inline-block color-yellow-6 />
+            </span>
+          </div>
+
+          <div flex="~ gap-2 wrap">
+            <h2 bg="sky-7/10" rounded-md p-2 shadow-sm>
+              Time
+            </h2>
+            <span bg="sky-7/10" rounded-md p-2 shadow-sm>
+              Model Inference: {{ modelInferenceTime.modelInference }} ms
+            </span>
+            <span bg="sky-7/10" rounded-md p-2 shadow-sm>
+              Pre Process: {{ modelInferenceTime.preProcess }} ms
+            </span>
+            <span bg="sky-7/10" rounded-md p-2 shadow-sm>
+              Post Process: {{ modelInferenceTime.postProcess }} ms
+            </span>
+          </div>
 
           <div flex-auto />
 
