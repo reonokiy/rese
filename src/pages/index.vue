@@ -33,6 +33,7 @@ const { files: modelFileList, open: openModelSelector, onChange: onModelFileList
 })
 const modelInputSize = reactive({ width: 640, height: 640 } as RectSize)
 const modelLabels = reactive([] as Label[])
+const modelName = ref('')
 const toAddLabel = reactive({ idx: null, name: null } as toNullable<Label>)
 
 function addLabel(idx: number | null, name: string | null) {
@@ -48,7 +49,6 @@ const highlight = () => onHighlight.value && mapCanvas.highlight(mouseX.value, m
 
 onMounted(() => {
   mapCanvas.init()
-  model.init('https://r2.ree.ink/models/levir-yolov8n-noprepocess-100epochs-best.onnx')
 })
 
 // resize canvas when window size changed
@@ -104,6 +104,7 @@ async function loadModelFromFileSystem() {
   if (modelFileList.value && modelFileList.value.item(0) !== null) {
     const file = modelFileList.value.item(0)!
     const url = URL.createObjectURL(file)
+    modelName.value = file.name
     await model.init(url)
 
     if (model.status)
@@ -111,6 +112,18 @@ async function loadModelFromFileSystem() {
     else
       window.alert('Model Load Failed!')
   }
+}
+
+async function loadModelFromURL() {
+  if (modelLink.value.length >= 0) {
+    await model.init(modelLink.value)
+    modelName.value = modelLink.value.split('/').pop()!
+  }
+
+  if (model.status)
+    window.alert('Model Loaded!')
+  else
+    window.alert('Model Load Failed!')
 }
 
 // load model when model file list changed
@@ -267,7 +280,7 @@ onModelFileListChange(loadModelFromFileSystem)
 
           <div bg="sky-7/10" rounded-md p-2 shadow-sm flex="~ items-center justify-between">
             <span>Model Name</span>
-            <input type="text" inline-block w-18 w-46 rounded-md px-2 py-1 bg="white/60" placeholder="YOLOv8">
+            <input v-model="modelName" type="text" inline-block w-18 w-46 rounded-md px-2 py-1 bg="white/60" placeholder="yolo.onnx">
           </div>
 
           <div bg="sky-7/10" flex="~ items-center justify-between" rounded-md p-2 shadow-sm>
@@ -316,7 +329,7 @@ onModelFileListChange(loadModelFromFileSystem)
             </div>
 
             <div my-1 mr-2 inline-block>
-              <button bg="sky-7 hover:sky-8 disabled:neutral-500" color="white" flex="~ items-center justify-center" rounded-md p-2 shadow-sm duration-300 ease-in-out :disabled="modelLink.length === 0" @click="openImageSelector()">
+              <button bg="sky-7 hover:sky-8 disabled:neutral-500" color="white" flex="~ items-center justify-center" rounded-md p-2 shadow-sm duration-300 ease-in-out :disabled="modelLink.length === 0" @click="loadModelFromURL()">
                 <span i-carbon-link mr-2 inline-block />
                 <span>Load from Link</span>
               </button>
