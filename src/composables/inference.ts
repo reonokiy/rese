@@ -1,13 +1,3 @@
-export interface DetectObject {
-  x: number
-  y: number
-  w: number
-  h: number
-  class: number
-  confidence: number
-  allConfidence: number[]
-}
-
 export class ONNXModel {
   path: Ref<String | null>
   session: any
@@ -32,7 +22,7 @@ export class ONNXModel {
     this.status.value = true
   }
 
-  async predict(image: ImageData, size = { height: 640, width: 640 }) {
+  async predict(image: ImageData, size: RectSize) {
     if (!this.session)
       throw new Error('model not loaded')
 
@@ -81,8 +71,8 @@ export async function processResult(output: any, threshold = 0.5) {
       }
     }
     return {
-      x,
-      y,
+      x: x - w / 2,
+      y: y - h / 2,
       w,
       h,
       class: maxConfidenceIdx,
@@ -98,36 +88,49 @@ export async function processResult(output: any, threshold = 0.5) {
       outputArray.push(ithObject)
   }
 
-  function NMS() {
-    const iou = (a: any, b: any) => {
-      const x1 = Math.max(a.x - a.w / 2, b.x - b.w / 2)
-      const y1 = Math.max(a.y - a.h / 2, b.y - b.h / 2)
-      const x2 = Math.min(a.x + a.w / 2, b.x + b.w / 2)
-      const y2 = Math.min(a.y + a.h / 2, b.y + b.h / 2)
-      const intersection = Math.max(0, x2 - x1) * Math.max(0, y2 - y1)
-      const union = a.w * a.h + b.w * b.h - intersection
-      return intersection / union
-    }
+  return NMS(outputArray)
+}
 
-    const result = [] as DetectObject[]
-    // for each class, do NMS
-    for (let i = 0; i < output.dims[1] - 4; i++) {
-      const ithClass = outputArray.filter((e: any) => e.class === i)
-      const ithClassSorted = ithClass.sort((a: any, b: any) => b.confidence - a.confidence)
-      const ithClassNMS = [] as typeof outputArray
-      while (ithClassSorted.length > 0) {
-        const current = ithClassSorted.shift()!
-        ithClassNMS.push(current)
-        ithClassSorted.forEach((e: any, idx: number) => {
-          if (iou(current, e) > 0.5)
-            ithClassSorted.splice(idx, 1)
-        })
-      }
-      result.push(...ithClassNMS)
-    }
+export function IOU(a: DetectObject, b: DetectObject) {
+  const x1 = Math.max(a.x, b.x)
+  const y1 = Math.max(a.y, b.y)
+  const x2 = Math.min(a.x + a.w, b.x + b.w)
+  const y2 = Math.min(a.y + a.h, b.y + b.h)
+  const intersection = Math.max(0, x2 - x1) * Math.max(0, y2 - y1)
+  const areaA = a.w * a.h
+  const areaB = b.w * b.h
+  const union = areaA + areaB - intersection
+  return intersection / union
+}
 
-    return result
+export async function NMS(objects: DetectObject[], threshold = 0.5) {
+  const tmp = [] as DetectObject[][]
+  const results = [] as DetectObject[]
+  // for each class, do NMS
+  for (const object of objects) {
+    if (!tmp[object.class])
+      tmp[object.class] = [object]
+    else
+      tmp[object.class].push(object)
   }
 
-  return NMS()
+  for (const ithClass of tmp) {
+    // if not Array, skip
+    if (!Array.isArray(ithClass))
+      continue
+
+    const ithClassSorted = ithClass.sort((a, b) => b.confidence - a.confidence)
+    const ithClassNMS = [] as typeof objects
+    while (ithClassSorted.length > 0) {
+      const current = ithClassSorted.shift()!
+      ithClassNMS.push(current)
+      ithClassSorted.forEach((e, idx) => {
+        if (IOU(current, e) > threshold)
+          ithClassSorted.splice(idx, 1)
+      })
+    }
+    results.push(...ithClassNMS)
+  }
+
+  return results
 }

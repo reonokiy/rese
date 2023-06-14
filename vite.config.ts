@@ -39,7 +39,7 @@ export default defineConfig({
       ],
       dts: true,
       dirs: [
-        './src/composables',
+        './src/composables/**',
       ],
       vueTemplate: true,
     }),

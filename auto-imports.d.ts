@@ -5,7 +5,9 @@
 export {}
 declare global {
   const EffectScope: typeof import('vue')['EffectScope']
+  const IOU: typeof import('./src/composables/inference')['IOU']
   const MapCanvas: typeof import('./src/composables/map')['MapCanvas']
+  const NMS: typeof import('./src/composables/inference')['NMS']
   const ONNXModel: typeof import('./src/composables/inference')['ONNXModel']
   const asyncComputed: typeof import('@vueuse/core')['asyncComputed']
   const autoResetRef: typeof import('@vueuse/core')['autoResetRef']
@@ -91,6 +93,7 @@ declare global {
   const shallowReactive: typeof import('vue')['shallowReactive']
   const shallowReadonly: typeof import('vue')['shallowReadonly']
   const shallowRef: typeof import('vue')['shallowRef']
+  const srcImageObj2Viewport: typeof import('./src/composables/map')['srcImageObj2Viewport']
   const syncRef: typeof import('@vueuse/core')['syncRef']
   const syncRefs: typeof import('@vueuse/core')['syncRefs']
   const templateRef: typeof import('@vueuse/core')['templateRef']
@@ -102,6 +105,7 @@ declare global {
   const toRefs: typeof import('vue')['toRefs']
   const toValue: typeof import('vue')['toValue']
   const toggleDark: typeof import('./src/composables/dark')['toggleDark']
+  const transformToViewport: typeof import('./src/composables/map')['transformToViewport']
   const triggerRef: typeof import('vue')['triggerRef']
   const tryOnBeforeMount: typeof import('@vueuse/core')['tryOnBeforeMount']
   const tryOnBeforeUnmount: typeof import('@vueuse/core')['tryOnBeforeUnmount']
@@ -271,6 +275,7 @@ declare global {
   const useWindowFocus: typeof import('@vueuse/core')['useWindowFocus']
   const useWindowScroll: typeof import('@vueuse/core')['useWindowScroll']
   const useWindowSize: typeof import('@vueuse/core')['useWindowSize']
+  const viewportObj2SrcImage: typeof import('./src/composables/map')['viewportObj2SrcImage']
   const watch: typeof import('vue')['watch']
   const watchArray: typeof import('@vueuse/core')['watchArray']
   const watchAtMost: typeof import('@vueuse/core')['watchAtMost']
@@ -298,7 +303,9 @@ import { UnwrapRef } from 'vue'
 declare module 'vue' {
   interface ComponentCustomProperties {
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
+    readonly IOU: UnwrapRef<typeof import('./src/composables/inference')['IOU']>
     readonly MapCanvas: UnwrapRef<typeof import('./src/composables/map')['MapCanvas']>
+    readonly NMS: UnwrapRef<typeof import('./src/composables/inference')['NMS']>
     readonly ONNXModel: UnwrapRef<typeof import('./src/composables/inference')['ONNXModel']>
     readonly asyncComputed: UnwrapRef<typeof import('@vueuse/core')['asyncComputed']>
     readonly autoResetRef: UnwrapRef<typeof import('@vueuse/core')['autoResetRef']>
@@ -382,6 +389,7 @@ declare module 'vue' {
     readonly shallowReactive: UnwrapRef<typeof import('vue')['shallowReactive']>
     readonly shallowReadonly: UnwrapRef<typeof import('vue')['shallowReadonly']>
     readonly shallowRef: UnwrapRef<typeof import('vue')['shallowRef']>
+    readonly srcImageObj2Viewport: UnwrapRef<typeof import('./src/composables/map')['srcImageObj2Viewport']>
     readonly syncRef: UnwrapRef<typeof import('@vueuse/core')['syncRef']>
     readonly syncRefs: UnwrapRef<typeof import('@vueuse/core')['syncRefs']>
     readonly templateRef: UnwrapRef<typeof import('@vueuse/core')['templateRef']>
@@ -583,7 +591,9 @@ declare module 'vue' {
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
+    readonly IOU: UnwrapRef<typeof import('./src/composables/inference')['IOU']>
     readonly MapCanvas: UnwrapRef<typeof import('./src/composables/map')['MapCanvas']>
+    readonly NMS: UnwrapRef<typeof import('./src/composables/inference')['NMS']>
     readonly ONNXModel: UnwrapRef<typeof import('./src/composables/inference')['ONNXModel']>
     readonly asyncComputed: UnwrapRef<typeof import('@vueuse/core')['asyncComputed']>
     readonly autoResetRef: UnwrapRef<typeof import('@vueuse/core')['autoResetRef']>
@@ -667,6 +677,7 @@ declare module '@vue/runtime-core' {
     readonly shallowReactive: UnwrapRef<typeof import('vue')['shallowReactive']>
     readonly shallowReadonly: UnwrapRef<typeof import('vue')['shallowReadonly']>
     readonly shallowRef: UnwrapRef<typeof import('vue')['shallowRef']>
+    readonly srcImageObj2Viewport: UnwrapRef<typeof import('./src/composables/map')['srcImageObj2Viewport']>
     readonly syncRef: UnwrapRef<typeof import('@vueuse/core')['syncRef']>
     readonly syncRefs: UnwrapRef<typeof import('@vueuse/core')['syncRefs']>
     readonly templateRef: UnwrapRef<typeof import('@vueuse/core')['templateRef']>

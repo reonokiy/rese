@@ -31,15 +31,15 @@ const { files: modelFileList, open: openModelSelector, onChange: onModelFileList
   accept: '.onnx',
   multiple: false,
 })
-const modelInputSize = reactive({ width: 640, height: 640 })
+const modelInputSize = reactive({ width: 640, height: 640 } as RectSize)
 const modelLabels = reactive([] as Label[])
-const toAddLabel = reactive({ idx: null, label: null } as { idx: number | null; label: string | null })
+const toAddLabel = reactive({ idx: null, name: null } as toNullable<Label>)
 
-function addLabel(idx: number | null, label: string | null) {
-  if (idx !== null && label !== null) {
-    modelLabels.push({ idx, label })
+function addLabel(idx: number | null, name: string | null) {
+  if (idx !== null && name !== null) {
+    modelLabels.push({ idx, name })
     toAddLabel.idx = null
-    toAddLabel.label = null
+    toAddLabel.name = null
   }
 }
 
@@ -59,9 +59,11 @@ useResizeObserver(mapAreaRef, () => {
 // execute predict when press 'D' or 'd'
 onKeyStroke(['D', 'd'], async () => {
   if (model.status && mapCanvas.status) {
-    const result = await model.predict(mapCanvas.getImage(mouseX.value, mouseY.value))
+    const size: RectSize = { width: modelInputSize.width, height: modelInputSize.height }
+    const { data: image, position } = await mapCanvas.getImage({ x: mouseX.value, y: mouseY.value }, size)
+    const result = await model.predict(image, { height: position.height, width: position.width })
     const objects = await processResult(result.output)
-    mapCanvas.addObjects(objects, { x: mouseX.value, y: mouseY.value }, { width: modelInputSize.width, height: modelInputSize.height })
+    mapCanvas.addObjects(objects, size, position)
   }
   else if (!model.status) {
     window.alert('Model Not Loaded!')
@@ -284,8 +286,8 @@ onModelFileListChange(loadModelFromFileSystem)
 
             <div flex="~ justify-between items-center gap-2" pr-2>
               <input v-model="toAddLabel.idx" placeholder="index" type="number" w-4 flex-auto rounded-md px-2 py-1 text-center bg="white/60">
-              <input v-model="toAddLabel.label" placeholder="label" type="text" w-16 flex-auto rounded-md px-2 py-1 text-center bg="white/60">
-              <button flex="~ items-center" bg="hover:white/60 disabled:transparent" mr-2 rounded-md p-2 duration-300 ease-in-out :disabled="toAddLabel.idx === null || toAddLabel.label === null" @click="addLabel(toAddLabel.idx, toAddLabel.label)">
+              <input v-model="toAddLabel.name" placeholder="label" type="text" w-16 flex-auto rounded-md px-2 py-1 text-center bg="white/60">
+              <button flex="~ items-center" bg="hover:white/60 disabled:transparent" mr-2 rounded-md p-2 duration-300 ease-in-out :disabled="toAddLabel.idx === null || toAddLabel.name === null" @click="addLabel(toAddLabel.idx, toAddLabel.name)">
                 <span i-carbon-add inline-block />
               </button>
             </div>
@@ -293,7 +295,7 @@ onModelFileListChange(loadModelFromFileSystem)
             <div v-if="modelLabels.length > 0" overflow-y-auto scrollbar="~ w-1 rounded track-color-transparent thumb-color-sky-7/60" flex="~ col gap-2" pr-2>
               <div v-for="label in modelLabels" :key="label.idx" flex="~ items-center justify-between gap-2" bg="white/60" rounded-md p-2>
                 <span w-4 flex-auto text-center>{{ label.idx }}</span>
-                <span w-16 flex-auto text-center>{{ label.label }}</span>
+                <span w-16 flex-auto text-center>{{ label.name }}</span>
                 <button flex="~ items-center" bg="hover:white/60" rounded-md p-2 duration-300 ease-in-out @click="modelLabels.splice(modelLabels.indexOf(label), 1)">
                   <span i-carbon-subtract inline-block />
                 </button>

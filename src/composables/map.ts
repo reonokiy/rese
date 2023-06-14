@@ -1,28 +1,3 @@
-import type { DetectObject } from './inference'
-
-export interface Viewport {
-  x: number
-  y: number
-  height: number
-  width: number
-  scale: number
-}
-
-export interface Label {
-  idx: number
-  name: string
-}
-
-export interface Position {
-  x: number
-  y: number
-}
-
-export interface RectSize {
-  width: number
-  height: number
-}
-
 export class MapCanvas {
   viewport: Viewport
   image: HTMLImageElement
@@ -128,13 +103,25 @@ export class MapCanvas {
     ctx.fillRect(0, position[1] + size[1], this.viewport.width, this.viewport.height - position[1] - size[1])
   }
 
-  getImage(mouseX: number, mouseY: number, size = [640, 640]): ImageData {
-    const position = [
-      Math.min(Math.max(Math.round(mouseX - size[0] / 2), 0), this.viewport.width - size[0]),
-      Math.min(Math.max(Math.round(mouseY - size[1] / 2), 0), this.viewport.height - size[1]),
-    ]
-    const imageData = this.getCtx().getImageData(position[0], position[1], size[0], size[1])
-    return imageData
+  async getImage(mouse: Position, size: RectSize) {
+    const position: Rect = {
+      x: Math.round(mouse.x - size.width / 2),
+      y: Math.round(mouse.y - size.height / 2),
+      width: size.width,
+      height: size.height,
+    }
+    const imageData = this.getCtx().getImageData(position.x, position.y, position.width, position.height)
+
+    // calculate the position relative to the src image
+    position.x = this.viewport.x + position.x / this.viewport.scale
+    position.y = this.viewport.y + position.y / this.viewport.scale
+    position.width /= this.viewport.scale
+    position.height /= this.viewport.scale
+
+    return {
+      data: imageData,
+      position,
+    }
   }
 
   centerImage() {
@@ -145,32 +132,33 @@ export class MapCanvas {
     this.render()
   }
 
-  addObjects(objects: DetectObject[], mousePosition: Position, size: RectSize) {
-    // convert position relative to mouse position to position relative to src image
-    for (const object of objects) {
-      object.x = Math.round(object.x / this.viewport.scale + this.viewport.x + mousePosition.x - size.width / 2)
-      object.y = Math.round(object.y / this.viewport.scale + this.viewport.y + mousePosition.y - size.height / 2)
-    }
+  async addObjects(objects: DetectObject[], size: RectSize, srcPos: Rect) {
+    objects.forEach((object) => {
+      object.x = srcPos.x + object.x / size.width * srcPos.width
+      object.y = srcPos.y + object.y / size.height * srcPos.height
+      object.w = object.w / size.width * srcPos.width
+      object.h = object.h / size.height * srcPos.height
+    })
     this.objects = this.objects.concat(objects)
+    this.objects = await NMS(this.objects, 0.5)
   }
 
   labelImage() {
     // filter out objects that are in the viewport
-    const objects = this.objects.filter((object) => {
-      return object.x >= this.viewport.x && object.x <= this.viewport.x + this.viewport.width / this.viewport.scale && object.y >= this.viewport.y && object.y <= this.viewport.y + this.viewport.height / this.viewport.scale
+    const objects = this.objects.map(object => srcImageObj2Viewport(object, this.viewport)).filter((object) => {
+      return object.x >= 0 && object.x + object.w <= this.viewport.width && object.y >= 0 && object.y + object.h <= this.viewport.height
     })
+
     // plot the objects
     const ctx = this.getCtx()
-    ctx.font = '20px Arial'
+    ctx.font = '12px'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     for (const object of objects) {
-      const position = [(object.x - this.viewport.x) * this.viewport.scale, (object.y - this.viewport.y) * this.viewport.scale]
-      const size = [object.w * this.viewport.scale, object.h * this.viewport.scale]
       ctx.fillStyle = getLabelColor(object.class)
-      ctx.fillRect(position[0] - size[0] / 2, position[1] - size[1] / 2, size[0], size[1])
+      ctx.fillRect(object.x, object.y, object.w, object.h)
       ctx.fillStyle = 'white'
-      ctx.fillText(object.class.toString(), position[0], position[1])
+      ctx.fillText(object.class.toString(), object.x + object.w / 2, object.y + object.h / 2)
     }
   }
 
@@ -206,4 +194,14 @@ export function getLabelColor(i: number, alpha = 0.2) {
   ]
   const color = palette[i % palette.length]
   return color + Math.round(alpha * 255).toString(16).padStart(2, '0')
+}
+
+export function srcImageObj2Viewport(object: DetectObject, viewport: Viewport) {
+  return {
+    ...object,
+    x: (object.x - viewport.x) * viewport.scale,
+    y: (object.y - viewport.y) * viewport.scale,
+    w: object.w * viewport.scale,
+    h: object.h * viewport.scale,
+  }
 }
