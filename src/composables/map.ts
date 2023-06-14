@@ -146,7 +146,7 @@ export class MapCanvas {
   labelImage() {
     // filter out objects that are in the viewport
     const objects = this.objects.map(object => srcImageObj2Viewport(object, this.viewport)).filter((object) => {
-      return object.x >= 0 && object.x + object.w <= this.viewport.width && object.y >= 0 && object.y + object.h <= this.viewport.height
+      return object.x <= this.viewport.width && object.y <= this.viewport.height && object.x + object.w >= 0 && object.y + object.h >= 0
     })
 
     // plot the objects
